@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ห้องเรียน EBiDAN</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;700;900&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html{overflow-x:auto}
+body{background:#dce8d0;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:20px 10px 40px;font-family:'Noto Sans Thai','Noto Sans JP',sans-serif;min-width:1040px}
+
+#page{background:#e8f0e0;width:1020px;min-width:1020px;padding:22px 28px 30px;border:3px solid #b0c8a0;border-radius:8px;box-shadow:0 4px 24px rgba(0,0,0,0.18);position:relative}
+
+.board-area{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.blackboard{background:linear-gradient(160deg,#4a7050,#305840,#4a7050);border:8px solid #7a5022;border-bottom:13px solid #7a5022;border-radius:4px 4px 2px 2px;box-shadow:inset 0 2px 16px rgba(0,0,0,0.45),0 3px 8px rgba(0,0,0,0.3);padding:10px 20px 12px;flex:1;position:relative}
+.blackboard::after{content:'';position:absolute;bottom:-22px;right:50px;width:80px;height:10px;background:linear-gradient(90deg,#8b6914,#c49a2a,#8b6914);border-radius:3px}
+.board-title{color:#f0ebe0;font-size:20px;font-weight:700;letter-spacing:2px;display:flex;align-items:center;justify-content:center;gap:8px}
+.board-room-input{background:transparent;border:none;border-bottom:2.5px solid rgba(245,215,110,0.8);color:#f5d76e;font-family:'Noto Sans Thai',sans-serif;font-size:20px;font-weight:700;width:220px;text-align:center;outline:none;padding:2px 6px}
+.board-room-input::placeholder{color:rgba(245,215,110,0.35);font-size:16px}
+.clock-beside{flex-shrink:0}
+
+.teacher-row{display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:14px}
+.teacher-label{font-size:13px;font-weight:700;color:#446644}
+.teacher-select-wrap{position:relative;display:inline-block}
+.teacher-select{border:2px solid #4488aa;background:white;color:#2255aa;font-family:'Noto Sans Thai','Noto Sans JP',sans-serif;font-size:13px;font-weight:600;padding:7px 36px 7px 14px;border-radius:8px;outline:none;cursor:pointer;min-width:220px;appearance:none}
+.teacher-select-wrap::after{content:'▾';position:absolute;right:12px;top:50%;transform:translateY(-50%);color:#4488aa;pointer-events:none}
+.teacher-display{display:none;align-items:center;gap:8px;background:white;border:2px solid #4488aa;border-radius:8px;padding:6px 12px;min-width:220px}
+
+.flowers-row{display:flex;align-items:center;justify-content:center;margin-bottom:14px}
+.flower{font-size:22px;padding:0 5px;opacity:0.88}
+.podium-box{border:2px solid #4488aa;color:#2255aa;font-size:14px;font-weight:700;background:white;border-radius:6px;margin:0 16px;white-space:nowrap;min-width:200px;overflow:hidden}
+.podium-top{font-size:13px;font-weight:700;letter-spacing:3px;padding:5px 16px 4px;text-align:center;border-bottom:1px solid #cce}
+.podium-select-wrap{padding:4px 6px}
+
+.classroom-outer{display:flex;gap:0;align-items:stretch}
+.side-panel{display:flex;flex-direction:column;align-items:center;justify-content:center;width:54px;flex-shrink:0;gap:6px;padding:4px 2px}
+.side-panel svg{width:44px;height:auto;display:block}
+.side-panel .side-txt{font-size:10px;font-weight:700;color:#558855;letter-spacing:1px;text-align:center;line-height:1.3}
+
+/* language switcher — absolute top-right of #page, above everything */
+.lang-switcher-bar{position:absolute;top:10px;right:10px;display:flex;align-items:center;gap:5px;z-index:20}
+.lang-btn2{padding:5px 13px;border-radius:20px;border:2px solid #88aa88;background:white;color:#446644;font-size:12px;font-weight:700;cursor:pointer;font-family:'Noto Sans Thai','Noto Sans JP',sans-serif;transition:all 0.15s;box-shadow:0 1px 5px rgba(0,0,0,0.15)}
+.lang-btn2:hover{background:#e8f5e8;border-color:#558855}
+.lang-btn2.on{background:#3e6b4a;color:white;border-color:#3e6b4a;box-shadow:0 2px 8px rgba(60,100,60,0.25)}
+
+.seat-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:0;flex:1}
+.seat-cell{padding:3px 2px}
+.seat-cell.aisle{padding-left:16px}
+
+.desk{border:2px solid #6699bb;background:rgba(255,255,255,0.82);border-radius:5px;height:82px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all 0.15s;position:relative;overflow:hidden;user-select:none}
+.desk:hover{background:rgba(180,220,255,0.6);border-color:#3366aa;transform:translateY(-2px);box-shadow:0 3px 10px rgba(50,100,200,0.18)}
+.desk.st-oshi{background:rgba(255,228,238,0.97);border-color:#cc4477;border-width:2.5px;box-shadow:0 0 12px rgba(220,60,100,0.22)}
+.desk.st-me{background:rgba(255,248,200,0.97);border-color:#cc9900;border-width:2.5px;box-shadow:0 0 12px rgba(220,170,0,0.28)}
+.desk.st-teacher{background:rgba(200,215,200,0.35);border-color:#aabcaa;border-width:1.5px;border-style:dashed;cursor:not-allowed;opacity:0.55}
+
+.desk-seatno{position:absolute;top:3px;right:5px;font-size:10px;color:#bbb;font-weight:700;line-height:1}
+.desk-icon-badge{position:absolute;top:2px;left:3px;font-size:10px;line-height:1}
+.desk-inner{display:flex;flex-direction:column;align-items:center;gap:1px;padding:2px 3px;width:100%}
+.desk-emoji{font-size:18px;line-height:1;opacity:0.3}
+.desk-name-jp{font-size:16px;font-weight:700;color:#222;text-align:center;line-height:1.2;max-width:100%;word-break:break-all;opacity:0.3}
+.desk-name-en{font-size:8px;color:#888;text-align:center;line-height:1;opacity:0.3}
+.desk-group{font-size:8px;text-align:center;max-width:100%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-weight:600;opacity:0.3}
+
+.desk.st-oshi .desk-emoji,.desk.st-oshi .desk-name-jp,.desk.st-oshi .desk-name-en,.desk.st-oshi .desk-group,
+.desk.st-me .desk-emoji,.desk.st-me .desk-name-jp,.desk.st-me .desk-name-en,.desk.st-me .desk-group,
+.desk.st-teacher .desk-emoji,.desk.st-teacher .desk-name-jp,.desk.st-teacher .desk-name-en,.desk.st-teacher .desk-group
+{opacity:1!important}
+.desk:hover .desk-emoji,.desk:hover .desk-name-jp,.desk:hover .desk-name-en,.desk:hover .desk-group{opacity:0.8}
+
+.page-footer{margin-top:16px;padding-top:10px;border-top:1px dashed #b0c8a0;display:flex;align-items:center;justify-content:flex-end;gap:8px}
+.page-footer-label{font-size:12px;color:#778877;font-weight:600}
+.page-footer-name{font-size:15px;font-weight:700;color:#334433;min-width:160px;border-bottom:1.5px solid #b0c8a0;padding-bottom:2px;padding-left:4px;min-height:22px}
+
+/* popup */
+.overlay{display:none;position:fixed;inset:0;z-index:100}
+.overlay.on{display:block}
+.popup{position:fixed;z-index:101;background:white;border-radius:14px;box-shadow:0 8px 36px rgba(0,0,0,0.28);border:1.5px solid #e8e8e8;padding:18px 18px 14px;width:250px}
+.popup-top{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.popup-emoji{font-size:36px;line-height:1}
+.popup-name{font-size:18px;font-weight:700;color:#222;line-height:1.2}
+.popup-name-en{font-size:10px;color:#999;margin-top:1px;line-height:1.2}
+.popup-group{font-size:12px;font-weight:600;margin-top:3px}
+.popup-no{font-size:10px;color:#aaa;margin-top:2px}
+.popup-btns{display:flex;flex-direction:column;gap:7px}
+.pbtn{padding:9px 12px;border-radius:9px;border:none;cursor:pointer;font-family:'Noto Sans Thai',sans-serif;font-size:13px;font-weight:600;transition:all 0.12s;text-align:left;display:flex;align-items:center;gap:8px}
+.pbtn:hover{transform:translateX(3px)}
+.pbtn.oshi{background:#fff0f5;color:#cc3366;border:1.5px solid #ffaacc}
+.pbtn.oshi.on{background:#ffe0ee;border-color:#cc3366}
+.pbtn.me{background:#fffbe8;color:#996600;border:1.5px solid #ffdd66}
+.pbtn.me.on{background:#fff0b0;border-color:#cc9900}
+.pbtn.clr{background:#f8f8f8;color:#888;border:1.5px solid #ddd;font-size:12px}
+.pbtn.clr:hover{background:#fee;color:#c44}
+.popup-close{position:absolute;top:10px;right:12px;background:none;border:none;cursor:pointer;font-size:18px;color:#ccc}
+
+/* me modal */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:200;align-items:center;justify-content:center}
+.modal-bg.on{display:flex}
+.me-modal{background:white;border-radius:16px;width:360px;box-shadow:0 12px 40px rgba(0,0,0,0.3)}
+.me-head{background:linear-gradient(135deg,#cc9900,#ffcc44);padding:14px 16px;color:white;font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:space-between;border-radius:16px 16px 0 0}
+.me-body{padding:16px}
+.me-lbl{font-size:12px;font-weight:700;color:#666;letter-spacing:1px;margin-bottom:10px}
+.me-sublbl{font-size:11px;color:#aaa;margin-bottom:8px}
+.me-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:4px}
+.me-btn{width:100%;aspect-ratio:1;border-radius:10px;border:2px solid #eee;background:#fafafa;font-size:26px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.12s}
+.me-btn:hover{border-color:#ffcc44;background:#fffbe0;transform:scale(1.08)}
+.me-btn.on{border-color:#cc9900;background:#fff8d0;box-shadow:0 0 0 2px #ffdd66}
+.me-input{width:100%;border:1.5px solid #ddd;border-radius:8px;padding:9px 12px;font-family:'Noto Sans Thai',sans-serif;font-size:14px;outline:none;margin-top:8px}
+.me-input:focus{border-color:#cc9900}
+.me-foot{padding:12px 16px;border-top:1px solid #f0f0f0}
+.me-confirm{width:100%;padding:10px;border-radius:10px;border:none;cursor:pointer;background:linear-gradient(135deg,#cc9900,#ffcc44);color:white;font-family:'Noto Sans Thai',sans-serif;font-size:15px;font-weight:700}
+.me-confirm:hover{opacity:0.9}
+
+.controls{display:flex;gap:12px;align-items:center;justify-content:center;margin-top:16px}
+.cbtn{padding:9px 22px;border-radius:20px;border:none;cursor:pointer;font-family:'Noto Sans Thai',sans-serif;font-size:13px;font-weight:700;transition:all 0.15s}
+.cbtn.save{background:#3e6b4a;color:white}
+.cbtn.save:hover{background:#2e5438}
+.cbtn.save:disabled{background:#aaa;cursor:not-allowed}
+.cbtn.danger{background:white;color:#c44;border:1.5px solid #e88}
+.cbtn.danger:hover{background:#fee}
+
+.footer-bar{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.7);border-radius:12px;padding:8px 18px;border:1.5px solid rgba(180,200,160,0.6);margin-top:12px}
+.footer-bar label{font-size:13px;font-weight:700;color:#556655;white-space:nowrap}
+.footer-bar input{border:none;border-bottom:1.5px solid #aac;background:transparent;font-family:'Noto Sans Thai',sans-serif;font-size:14px;font-weight:600;color:#333;outline:none;width:220px;padding:2px 4px}
+.footer-bar input::placeholder{color:#bbb}
+
+.legend{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin-top:10px}
+.leg{display:flex;align-items:center;gap:5px;font-size:11px;color:#555}
+.leg-dot{width:10px;height:10px;border-radius:50%}
+
+@media print{
+  body{padding:0;background:#e8f0e0}
+  .controls,.legend,.footer-bar,.overlay,.popup,.modal-bg,.lang-switcher-bar{display:none!important}
+  #page{box-shadow:none;border:2px solid #ccc}
+}
+</style>
+</head>
+<body>
+
+<div id="page">
+  <!-- Lang switcher: absolute top-right of page -->
+  <div class="lang-switcher-bar">
+    <button class="lang-btn2 on" onclick="setLang('th')">TH</button>
+    <button class="lang-btn2" onclick="setLang('jp')">JP</button>
+    <button class="lang-btn2" onclick="setLang('en')">EN</button>
+  </div>
+
+  <!-- Board area: blackboard + clock side by side -->
+  <div class="board-area">
+    <div class="blackboard">
+      <div class="board-title">
+        <span id="boardTitleText">ห้องเรียน</span>
+        <input class="board-room-input" id="roomInput" type="text" placeholder="พิมพ์ชื่อห้องที่นี่...">
+        <span id="boardTitleSuffix" style="display:none"></span>
+      </div>
+    </div>
+    <div class="clock-beside">
+      <canvas id="clockCanvas" width="64" height="64" style="border-radius:50%;box-shadow:0 2px 10px rgba(0,0,0,0.22);border:4px solid #8b5e2a;background:#f5f0e5;display:block"></canvas>
+    </div>
+  </div>
+
+
+  <div class="flowers-row">
+    <span class="flower">🌸</span><span class="flower">🌼</span><span class="flower">💐</span><span class="flower">🌼</span>
+    <div class="podium-box" id="podiumBox">
+      <div class="podium-top"><span id="podiumEmoji" style="font-size:18px;margin-right:4px"></span><span id="podiumLabel">โต๊ะครู</span></div>
+      <div class="podium-select-wrap">
+        <div class="teacher-select-wrap" style="width:100%">
+          <select class="teacher-select" id="teacherSelect" onchange="onTeacherChange()" style="min-width:0;width:100%;font-size:11px;padding:4px 28px 4px 8px">
+            <option value="">— เลือกครูประจำชั้น —</option>
+          </select>
+        </div>
+        <div class="teacher-display" id="teacherDisplay" style="min-width:0;padding:4px 8px;font-size:11px">
+          <span id="teacherEmoji" style="font-size:18px"></span>
+          <div style="min-width:0;overflow:hidden">
+            <div id="teacherName" style="font-size:11px;font-weight:700;color:#2255aa;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div>
+            <div id="teacherSub" style="font-size:9px;color:#888"></div>
+          </div>
+          <button onclick="resetTeacher()" style="margin-left:auto;background:none;border:none;cursor:pointer;font-size:12px;color:#bbb;padding:0 0 0 4px;flex-shrink:0">✕</button>
+        </div>
+      </div>
+    </div>
+    <span class="flower">🌼</span><span class="flower">💐</span><span class="flower">🌼</span><span class="flower">🌸</span>
+  </div>
+
+  <div class="classroom-outer">
+    <!-- Window side — simple top view rectangle -->
+    <div class="side-panel">
+      <svg viewBox="0 0 30 820" xmlns="http://www.w3.org/2000/svg">
+        <rect x="0" y="0" width="30" height="820" rx="4" fill="#a8d4f0" stroke="#5599cc" stroke-width="2"/>
+      </svg>
+      <div class="side-txt" id="winLabel">ฝั่ง<br>หน้าต่าง</div>
+    </div>
+
+    <div class="seat-grid" id="seatGrid" style="margin:0 6px"></div>
+
+    <!-- Door side — simple top view rectangle -->
+    <div class="side-panel">
+      <svg viewBox="0 0 30 820" xmlns="http://www.w3.org/2000/svg">
+        <rect x="0" y="0" width="30" height="820" rx="4" fill="#c8a070" stroke="#8b5e2a" stroke-width="2"/>
+      </svg>
+      <div class="side-txt" id="doorLabel">ฝั่ง<br>ประตู</div>
+    </div>
+  </div>
+
+  <div class="page-footer">
+    <span class="page-footer-label">ชื่อ :</span>
+    <span class="page-footer-name" id="pageFooterName"></span>
+  </div>
+</div>
+
+<div class="footer-bar">
+  <label>✏️ ชื่อของคุณ (แสดงท้ายรูป) :</label>
+  <input type="text" id="footerInput" placeholder="พิมพ์ชื่อที่นี่..." oninput="onFooterChange()">
+</div>
+
+<div class="controls">
+  <button class="cbtn save" id="saveBtn" onclick="saveAsImage()">📸 เซฟรูป</button>
+  <button class="cbtn danger" onclick="clearAll()">🧹 ล้างทั้งหมด</button>
+</div>
+<div class="legend">
+  <div class="leg"><div class="leg-dot" style="background:#cc4477"></div>โอชิของฉัน 💗</div>
+  <div class="leg"><div class="leg-dot" style="background:#cc9900"></div>ที่นั่งของฉัน ⭐</div>
+  <div class="leg"><div class="leg-dot" style="background:#aabcaa;border:1px dashed #778877"></div>ครูประจำชั้น 🧑‍🏫</div>
+</div>
+
+<!-- OSHI EMOJI MODAL -->
+<div class="modal-bg" id="oshiModalBg" onclick="onOshiBgClick(event)">
+  <div class="me-modal">
+    <div class="me-head" style="background:linear-gradient(135deg,#cc4477,#ff88aa)">
+      <span id="oshiModalTitle">💗 เลือกอีโมจิโอชิ</span>
+      <button onclick="closeOshiModal()" style="background:none;border:none;cursor:pointer;font-size:18px;color:rgba(255,255,255,0.8)">✕</button>
+    </div>
+    <div class="me-body">
+      <div class="me-lbl" id="oshiIconLbl" style="margin-bottom:8px">เลือกอีโมจิสำหรับโอชิ</div>
+      <div class="me-grid" id="oshiIconGrid"></div>
+      <button id="oshiRandomBtn" onclick="randomOshiEmoji()" style="width:100%;margin-top:10px;padding:8px;border-radius:8px;border:1.5px dashed #ffaacc;background:#fff0f5;color:#cc4477;font-family:'Noto Sans Thai',sans-serif;font-size:13px;font-weight:700;cursor:pointer">🎲 สุ่มอีโมจิ</button>
+    </div>
+    <div class="me-foot">
+      <button class="me-confirm" id="oshiConfirmBtn" style="background:linear-gradient(135deg,#cc4477,#ff88aa)" onclick="confirmOshiEmoji()">💗 ยืนยัน</button>
+    </div>
+  </div>
+</div>
+<div class="overlay" id="popupOverlay" onclick="closePopup()"></div>
+<div class="popup" id="popup" style="display:none">
+  <button class="popup-close" onclick="closePopup()">✕</button>
+  <div class="popup-top">
+    <div class="popup-emoji" id="popupEmoji"></div>
+    <div>
+      <div class="popup-name" id="popupName"></div>
+      <div class="popup-name-en" id="popupNameEn"></div>
+      <div class="popup-group" id="popupGroup"></div>
+      <div class="popup-no" id="popupNo"></div>
+    </div>
+  </div>
+  <div class="popup-btns" id="popupBtns"></div>
+</div>
+
+<!-- ME modal -->
+<div class="modal-bg" id="meModalBg" onclick="onMeBgClick(event)">
+  <div class="me-modal">
+    <div class="me-head">
+      <span id="meModalTitle">⭐ ที่นั่งของฉัน</span>
+      <button onclick="closeMeModal()" style="background:none;border:none;cursor:pointer;font-size:18px;color:rgba(255,255,255,0.8)">✕</button>
+    </div>
+    <div class="me-body">
+      <div class="me-lbl" id="meIconLbl">เลือกไอคอนของฉัน</div>
+      <div class="me-grid" id="meIconGrid"></div>
+      <button id="meRandomBtn" onclick="randomMeEmoji()" style="width:100%;margin-top:10px;padding:8px;border-radius:8px;border:1.5px dashed #ffdd66;background:#fffbe8;color:#996600;font-family:'Noto Sans Thai',sans-serif;font-size:13px;font-weight:700;cursor:pointer">🎲 สุ่มอีโมจิ</button>
+      <div class="me-lbl" id="meNameLbl" style="margin-top:14px">ชื่อของฉัน</div>
+      <input class="me-input" id="meNameInput" type="text" placeholder="พิมพ์ชื่อของคุณ...">
+    </div>
+    <div class="me-foot">
+      <button class="me-confirm" id="meConfirmBtn" onclick="confirmMe()">✓ ยืนยัน</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────
+var G = {
+  '超特急':           '#f472b6',
+  'M！LK':            '#e5e7eb',
+  'SUPER★DRAGON':     '#60a5fa',
+  'Sakurashimeji':    '#4ade80',
+  "ONE N' ONLY":      '#6b7280',
+  '原因は自分にある。':'#d1d5db',
+  'BUDDiiS':          '#fbbf24',
+  'ICEx':             '#38bdf8',
+  'Lienel':           '#a855f7',
+};
+
+var MB = [
+  {no:1, jp:'リョウガ',en:'RYOGA',g:'超特急'},
+  {no:2, jp:'ユーキ',en:'YUKI',g:'超特急'},
+  {no:3, jp:'タクヤ',en:'TAKUYA',g:'超特急'},
+  {no:4, jp:'タカシ',en:'TAKASHI',g:'超特急'},
+  {no:5, jp:'カイ',en:'KAI',g:'超特急'},
+  {no:6, jp:'ジャン海渡',en:'JEAN',g:'SUPER★DRAGON'},
+  {no:7, jp:'飯島颯',en:'HAYATE',g:'SUPER★DRAGON'},
+  {no:8, jp:'塩﨑太智',en:'DAICHI',g:'M！LK'},
+  {no:9, jp:'吉田仁人',en:'JINTO',g:'M！LK'},
+  {no:10,jp:'志村玲於',en:'REO',g:'SUPER★DRAGON'},
+  {no:11,jp:'髙田彪我',en:'HYOGA',g:'Sakurashimeji'},
+  {no:12,jp:'EIKU',en:'EIKU',g:"ONE N' ONLY"},
+  {no:13,jp:'松村和哉',en:'KAZUYA',g:'SUPER★DRAGON'},
+  {no:14,jp:'佐野勇斗',en:'HAYATO',g:'M！LK'},
+  {no:15,jp:'田中洸希',en:'KOKI',g:'SUPER★DRAGON'},
+  {no:16,jp:'柴崎楽',en:'RAKU',g:'SUPER★DRAGON'},
+  {no:17,jp:'田中雅功',en:'GAKU',g:'Sakurashimeji'},
+  {no:18,jp:'伊藤壮吾',en:'SOGO',g:'SUPER★DRAGON'},
+  {no:19,jp:'高桑真之',en:'SANE',g:'Lienel'},
+  {no:20,jp:'高岡ミロ',en:'MILO',g:'Lienel'},
+  {no:21,jp:'中村旺太郎',en:'OTARO',g:'ICEx'},
+  {no:22,jp:'古川毅',en:'TSUYOSHI',g:'SUPER★DRAGON'},
+  {no:23,jp:'池田彪馬',en:'HYOMA',g:'SUPER★DRAGON'},
+  {no:24,jp:'大倉空人',en:'TAKATO',g:'原因は自分にある。'},
+  {no:25,jp:'TETTA',en:'TETTA',g:"ONE N' ONLY"},
+  {no:26,jp:'NAOYA',en:'NAOYA',g:"ONE N' ONLY"},
+  {no:27,jp:'KEVIN',en:'KEVIN',g:'BUDDiiS'},
+  {no:28,jp:'長野凌大',en:'RYOTA',g:'原因は自分にある。'},
+  {no:29,jp:'小泉光咲',en:'KOSAKU',g:'原因は自分にある。'},
+  {no:30,jp:'曽野舜太',en:'SHUNTA',g:'M！LK'},
+  {no:31,jp:'HAYATO',en:'HAYATO (ONO)',g:"ONE N' ONLY"},
+  {no:32,jp:'REI',en:'REI',g:"ONE N' ONLY"},
+  {no:33,jp:'桜木雅哉',en:'MASAYA',g:'原因は自分にある。'},
+  {no:34,jp:'武藤潤',en:'JUN',g:'原因は自分にある。'},
+  {no:35,jp:'山中柔太朗',en:'JYUTARO',g:'M！LK'},
+  {no:36,jp:'千田波空斗',en:'HAKUTO',g:'ICEx'},
+  {no:37,jp:'吉澤要人',en:'KANAME',g:'原因は自分にある。'},
+  {no:38,jp:'芳賀柊斗',en:'SHUTO',g:'Lienel'},
+  {no:39,jp:'YUMA',en:'YUMA',g:'BUDDiiS'},
+  {no:40,jp:'SEIYA',en:'SEIYA',g:'BUDDiiS'},
+  {no:41,jp:'杢代和人',en:'KAZUTO',g:'原因は自分にある。'},
+  {no:42,jp:'筒井俊旭',en:'TOSHIAKI',g:'ICEx'},
+  {no:43,jp:'MORRIE',en:'MORRIE',g:'BUDDiiS'},
+  {no:44,jp:'ハル',en:'HARU',g:'超特急'},
+  {no:45,jp:'アロハ',en:'ALOHA',g:'超特急'},
+  {no:46,jp:'SHOW',en:'SHOW',g:'BUDDiiS'},
+  {no:47,jp:'FUMINORI',en:'FUMINORI',g:'BUDDiiS'},
+  {no:48,jp:'TAKUYA',en:'TAKUYA (BD)',g:'BUDDiiS'},
+  {no:49,jp:'FUMIYA',en:'FUMIYA',g:'BUDDiiS'},
+  {no:50,jp:'志賀李玖',en:'RIKU',g:'ICEx'},
+  {no:51,jp:'山本龍人',en:'RYUTO',g:'ICEx'},
+  {no:52,jp:'SHOOT',en:'SHOOT',g:'BUDDiiS'},
+  {no:53,jp:'近藤駿太',en:'SHUNTA (LN)',g:'Lienel'},
+  {no:54,jp:'阿久根温世',en:'HARUSE',g:'ICEx'},
+  {no:55,jp:'森田璃空',en:'RIKU (LN)',g:'Lienel'},
+  {no:56,jp:'竹野世梛',en:'SENA',g:'ICEx'},
+  {no:57,jp:'武田創世',en:'SOSE',g:'Lienel'},
+  {no:58,jp:'シューヤ',en:'SHUYA',g:'超特急'},
+  {no:59,jp:'マサヒロ',en:'MASAHIRO',g:'超特急'},
+  {no:60,jp:'八神遼介',en:'RYOSUKE',g:'ICEx'}
+];
+
+function pEmoji(no){ return ''; } // not used for plain desks
+
+// ── STATE ─────────────────────────────────────────────────
+var state = {};        // seatIdx(0-59) -> 'oshi' | 'me'
+var oshiEmojis = {};   // seatIdx -> emoji string for oshi
+var teacherNo = 0;     // member no, 0 = none
+var meSeatTarget = -1;
+var myIcon = '🧑';
+var myName = '';
+
+// ── LANGUAGE ──────────────────────────────────────────────
+var LANG = 'th';
+
+var TXT = {
+  th: {
+    room: 'ห้องเรียน', roomPH: 'พิมพ์ชื่อห้องที่นี่...',
+    teacher: '🧑‍🏫 ครูประจำชั้น :', teacherPH: '— เลือกครูประจำชั้น —',
+    podium: 'โต๊ะครู',
+    win: 'ฝั่ง\nหน้าต่าง', door: 'ฝั่ง\nประตู',
+    footer: 'ชื่อ :', footerPH: 'พิมพ์ชื่อที่นี่...',
+    footerLabel: '✏️ ชื่อของคุณ (แสดงท้ายรูป) :',
+    save: '📸 เซฟรูป', clear: '🧹 ล้างทั้งหมด',
+    leg1: 'โอชิของฉัน 💗', leg2: 'ที่นั่งของฉัน ⭐', leg3: 'ครูประจำชั้น 🧑‍🏫',
+    oshi: '💗 โอชิของฉัน', oshiOn: '💗 โอชิของฉัน ✓',
+    me: '⭐ ที่นั่งของฉัน', meOn: '⭐ ที่นั่งของฉัน ✓', meClr: '✕ ยกเลิก',
+    meTitle: '⭐ ที่นั่งของฉัน', meLbl: 'เลือกไอคอนของฉัน',
+    oshiTitle: '💗 เลือกอีโมจิโอชิ', oshiLbl: 'เลือกอีโมจิสำหรับโอชิ', oshiOk: '💗 ยืนยัน',
+    randomBtn: '🎲 สุ่มอีโมจิ',
+    meSub: '🧑 คน · 🐾 สัตว์ · 🍴 ของกิน',
+    meNmLbl: 'ชื่อของฉัน', meNmPH: 'พิมพ์ชื่อของคุณ...', meOk: '✓ ยืนยัน', meName: 'ฉัน',
+    attNo: 'เลขประจำตัว #', saving: '⏳ กำลังบันทึก...',
+    clearConfirm: 'ล้างการเลือกทั้งหมดใช่ไหม?', errSave: 'เกิดข้อผิดพลาด ลองใหม่อีกครั้ง'
+  },
+  jp: {
+    room: '教室', roomPH: 'クラス名を入力...',
+    teacher: '🧑‍🏫 担任の先生 :', teacherPH: '— 担任の先生を選ぶ —',
+    podium: '教壇',
+    win: '窓側', door: '廊下側',
+    footer: '名前 :', footerPH: '名前を入力...',
+    footerLabel: '✏️ あなたの名前（写真の下に表示） :',
+    save: '📸 保存', clear: '🧹 リセット',
+    leg1: '推し 💗', leg2: 'わたしの席 ⭐', leg3: '担任の先生 🧑‍🏫',
+    oshi: '💗 推し', oshiOn: '💗 推し ✓',
+    me: '⭐ わたしの席', meOn: '⭐ わたしの席 ✓', meClr: '✕ キャンセル',
+    meTitle: '⭐ わたしの席', meLbl: 'アイコンを選ぶ',
+    oshiTitle: '💗 推しの絵文字', oshiLbl: '絵文字を選ぶ', oshiOk: '💗 決定',
+    randomBtn: '🎲 シャッフル',
+    meSub: '🧑 人 · 🐾 動物 · 🍴 食べ物',
+    meNmLbl: '自分の名前', meNmPH: '名前を入力...', meOk: '✓ 決定', meName: 'わたし',
+    attNo: '出席番号 #', saving: '⏳ 保存中...',
+    clearConfirm: '全てリセットしますか？', errSave: 'エラーが発生しました。もう一度お試しください。'
+  },
+  en: {
+    room: 'Classroom', roomPH: 'Enter class name...',
+    teacher: '🧑‍🏫 Homeroom Teacher :', teacherPH: '— Select Teacher —',
+    podium: "Teacher's Desk",
+    win: 'Window\nSide', door: 'Door\nSide',
+    footer: 'Name :', footerPH: 'Enter your name...',
+    footerLabel: '✏️ Your name (shown in image) :',
+    save: '📸 Save Image', clear: '🧹 Reset',
+    leg1: 'My Oshi 💗', leg2: 'My Seat ⭐', leg3: 'Homeroom Teacher 🧑‍🏫',
+    oshi: '💗 My Oshi', oshiOn: '💗 My Oshi ✓',
+    me: '⭐ My Seat', meOn: '⭐ My Seat ✓', meClr: '✕ Cancel',
+    meTitle: '⭐ My Seat', meLbl: 'Choose your icon',
+    oshiTitle: '💗 Oshi Emoji', oshiLbl: 'Choose emoji for your oshi', oshiOk: '💗 Confirm',
+    randomBtn: '🎲 Shuffle',
+    meSub: '🧑 People · 🐾 Animals · 🍴 Food',
+    meNmLbl: 'Your Name', meNmPH: 'Enter your name...', meOk: '✓ Confirm', meName: 'Me',
+    attNo: 'Attendance #', saving: '⏳ Saving...',
+    clearConfirm: 'Reset all selections?', errSave: 'Error occurred. Please try again.'
+  }
+};
+
+function t(key){ return TXT[LANG][key] || TXT['th'][key] || key; }
+
+function setLang(lang) {
+  LANG = lang;
+  document.querySelectorAll('.lang-btn2').forEach(function(b){ b.classList.toggle('on', b.textContent === lang.toUpperCase()); });
+  applyLang();
+  buildGrid();
+}
+
+function applyLang() {
+  var tx = TXT[LANG];
+  // board title — JP: no prefix, EN: suffix after input
+  var bt = document.getElementById('boardTitleText');
+  var bs = document.getElementById('boardTitleSuffix');
+  if(LANG === 'jp'){
+    bt.style.display = 'none';
+    bs.style.display = 'none';
+  } else if(LANG === 'en'){
+    bt.style.display = 'none';
+    bs.style.display = '';
+    bs.textContent = 'Classroom';
+  } else {
+    bt.style.display = '';
+    bt.textContent = tx.room;
+    bs.style.display = 'none';
+  }
+  document.getElementById('roomInput').placeholder = tx.roomPH;
+  // teacher select placeholder
+  var sel = document.getElementById('teacherSelect');
+  sel.options[0].textContent = tx.teacherPH;
+  // podium label
+  var pl = document.getElementById('podiumLabel');
+  if(pl) pl.textContent = tx.podium;
+  // sides
+  document.getElementById('winLabel').innerHTML = tx.win.replace('\n','<br>');
+  document.getElementById('doorLabel').innerHTML = tx.door.replace('\n','<br>');
+  // footer
+  document.querySelector('.page-footer-label').textContent = tx.footer;
+  document.querySelector('.footer-bar label').textContent = tx.footerLabel;
+  document.getElementById('footerInput').placeholder = tx.footerPH;
+  // buttons
+  document.getElementById('saveBtn').textContent = tx.save;
+  document.querySelector('.cbtn.danger').textContent = tx.clear;
+  // legend
+  var legs = document.querySelectorAll('.leg');
+  if(legs[0]) legs[0].lastChild.textContent = ' ' + tx.leg1;
+  if(legs[1]) legs[1].lastChild.textContent = ' ' + tx.leg2;
+  if(legs[2]) legs[2].lastChild.textContent = ' ' + tx.leg3;
+  // me modal
+  document.getElementById('meModalTitle').textContent = tx.meTitle;
+  document.getElementById('meIconLbl').textContent = tx.meLbl;
+  document.getElementById('meNameLbl').textContent = tx.meNmLbl;
+  document.getElementById('meNameInput').placeholder = tx.meNmPH;
+  document.getElementById('meConfirmBtn').textContent = tx.meOk;
+  document.getElementById('meRandomBtn').textContent = tx.randomBtn;
+  // oshi modal
+  document.getElementById('oshiModalTitle').textContent = tx.oshiTitle;
+  document.getElementById('oshiIconLbl').textContent = tx.oshiLbl;
+  document.getElementById('oshiConfirmBtn').textContent = tx.oshiOk;
+  document.getElementById('oshiRandomBtn').textContent = tx.randomBtn;
+}
+
+// ── TEACHER ───────────────────────────────────────────────
+function buildTeacherSelect() {
+  var sel = document.getElementById('teacherSelect');
+  var lastG = '';
+  for (var i = 0; i < MB.length; i++) {
+    var m = MB[i];
+    if (m.g !== lastG) {
+      var og = document.createElement('optgroup');
+      og.label = m.g;
+      sel.appendChild(og);
+      lastG = m.g;
+    }
+    var opt = document.createElement('option');
+    opt.value = m.no;
+    opt.textContent = '#' + m.no + '  ' + m.jp + ' / ' + m.en;
+    sel.lastElementChild.appendChild(opt);
+  }
+}
+
+function onTeacherChange() {
+  var sel = document.getElementById('teacherSelect');
+  var no = parseInt(sel.value) || 0;
+  if (!no) { teacherNo = 0; document.getElementById('teacherDisplay').style.display = 'none'; buildGrid(); return; }
+  var m = MB[no - 1];
+  var color = G[m.g] || '#888';
+  teacherNo = no;
+  delete state[no - 1];
+  document.getElementById('teacherEmoji').textContent = pEmoji(m.no);
+  document.getElementById('teacherName').textContent = m.jp + ' / ' + m.en;
+  document.getElementById('teacherSub').textContent = m.g + ' · #' + m.no;
+  document.getElementById('teacherSub').style.color = G[m.g] || '#888';
+  document.getElementById('teacherDisplay').style.display = 'flex';
+  document.getElementById('podiumEmoji').textContent = '🧑‍🏫';
+  buildGrid();
+}
+
+function resetTeacher() {
+  document.getElementById('teacherSelect').value = '';
+  document.getElementById('teacherDisplay').style.display = 'none';
+  document.getElementById('podiumEmoji').textContent = '';
+  teacherNo = 0;
+  buildGrid();
+}
+
+// ── GRID ──────────────────────────────────────────────────
+function buildGrid() {
+  var grid = document.getElementById('seatGrid');
+  grid.innerHTML = '';
+  for (var r = 0; r < 10; r++) {
+    for (var c = 0; c < 6; c++) {
+      var idx = c * 10 + r;
+      var m = MB[idx];
+      var color = G[m.g] || '#aaa';
+      var st = state[idx] || '';
+      var isMe = st === 'me';
+      // isT = seat belongs to teacher AND no oshi/me state on it
+      var isT = teacherNo && m.no === teacherNo && !st;
+
+      var cell = document.createElement('div');
+      cell.className = 'seat-cell' + (c === 2 || c === 4 ? ' aisle' : '');
+
+      var desk = document.createElement('div');
+      desk.className = 'desk' + (isT ? ' st-teacher' : st ? ' st-' + st : '');
+
+      var sno = document.createElement('div');
+      sno.className = 'desk-seatno';
+      sno.textContent = '#' + (idx + 1);
+      desk.appendChild(sno);
+
+      if (!isT && st) {
+        var badge = document.createElement('div');
+        badge.className = 'desk-icon-badge';
+        badge.textContent = st === 'oshi' ? '💗' : '⭐';
+        desk.appendChild(badge);
+      }
+
+      // ── desk content ──
+      var inner = document.createElement('div');
+      inner.className = 'desk-inner';
+
+      if (isT) {
+        // teacher's desk: show empty with subtle icon only
+        var emT = document.createElement('div');
+        emT.className = 'desk-emoji';
+        emT.style.opacity = '0.25';
+        emT.textContent = '🧑‍🏫';
+        inner.appendChild(emT);
+      } else if (st) {
+        var em = document.createElement('div');
+        em.className = 'desk-emoji';
+        em.textContent = isMe ? myIcon : (oshiEmojis[idx] || '💗');
+        inner.appendChild(em);
+      }
+
+      if (!isMe) {
+        var nmJp = document.createElement('div');
+        nmJp.className = 'desk-name-jp';
+        nmJp.textContent = m.jp;
+
+        var nmEn = document.createElement('div');
+        nmEn.className = 'desk-name-en';
+        var enClean = m.en.replace(/\s*\([^)]*\)/g, '');
+        nmEn.textContent = '(' + enClean + ')';
+
+        var gp = document.createElement('div');
+        gp.className = 'desk-group';
+        gp.style.color = '#111';
+        gp.style.background = color;
+        gp.style.padding = '0 3px';
+        gp.style.borderRadius = '3px';
+        gp.textContent = m.g;
+
+        inner.appendChild(nmJp);
+        inner.appendChild(nmEn);
+        inner.appendChild(gp);
+      } else {
+        var nmMe = document.createElement('div');
+        nmMe.className = 'desk-name-jp';
+        nmMe.textContent = myName || TXT[LANG].meName || 'Me';
+        inner.appendChild(nmMe);
+      }
+
+      desk.appendChild(inner);
+
+      (function(i, d){ d.addEventListener('click', function(e){ e.stopPropagation(); if(isT) return; openPopup(i, d); }); })(idx, desk);
+      cell.appendChild(desk);
+      grid.appendChild(cell);
+    }
+  }
+}
+
+// ── POPUP ─────────────────────────────────────────────────
+var activeSeat = -1;
+
+function openPopup(idx, deskEl) {
+  activeSeat = idx;
+  var m = MB[idx];
+  var color = G[m.g] || '#888';
+  var st = state[idx] || '';
+  var isMe = st === 'me';
+
+  document.getElementById('popupEmoji').textContent = isMe ? myIcon : (oshiEmojis[idx] || '');
+  document.getElementById('popupName').textContent = m.jp;
+  document.getElementById('popupNameEn').textContent = '(' + m.en.replace(/\s*\([^)]*\)/g,'') + ')';
+  document.getElementById('popupGroup').textContent = m.g;
+  document.getElementById('popupGroup').style.color = '#111';
+  document.getElementById('popupGroup').style.background = color;
+  document.getElementById('popupGroup').style.padding = '2px 8px';
+  document.getElementById('popupGroup').style.borderRadius = '4px';
+  document.getElementById('popupGroup').style.display = 'inline-block';
+  document.getElementById('popupNo').textContent = t('attNo') + m.no;
+
+  var btns = document.getElementById('popupBtns');
+  btns.innerHTML = '';
+
+  var b1 = document.createElement('button');
+  b1.className = 'pbtn oshi' + (st === 'oshi' ? ' on' : '');
+  b1.innerHTML = st === 'oshi' ? t('oshiOn') : t('oshi');
+  b1.onclick = function() {
+    if (st === 'oshi') {
+      delete state[idx];
+      delete oshiEmojis[idx];
+      buildGrid(); closePopup();
+    } else {
+      closePopup();
+      openOshiEmojiModal(idx);
+    }
+  };
+  btns.appendChild(b1);
+
+  var b2 = document.createElement('button');
+  b2.className = 'pbtn me' + (st === 'me' ? ' on' : '');
+  b2.innerHTML = st === 'me' ? t('meOn') : t('me');
+  b2.onclick = function() {
+    if (st === 'me') { delete state[idx]; buildGrid(); closePopup(); }
+    else { closePopup(); openMeModal(idx); }
+  };
+  btns.appendChild(b2);
+
+  if (st) {
+    var bc = document.createElement('button');
+    bc.className = 'pbtn clr';
+    bc.textContent = t('meClr');
+    bc.onclick = function() { delete state[idx]; buildGrid(); closePopup(); };
+    btns.appendChild(bc);
+  }
+
+  var popup = document.getElementById('popup');
+  popup.style.display = 'block';
+  var rect = deskEl.getBoundingClientRect();
+  var popH = popup.offsetHeight || 240;
+  var popW = popup.offsetWidth || 260;
+
+  // try below first, else above
+  var top = rect.bottom + 6;
+  if (top + popH > window.innerHeight - 8) top = rect.top - popH - 6;
+  if (top < 8) top = 8;
+
+  // align left with desk, keep in viewport
+  var left = rect.left;
+  if (left + popW > window.innerWidth - 8) left = window.innerWidth - popW - 8;
+  if (left < 8) left = 8;
+
+  popup.style.top = top + 'px';
+  popup.style.left = left + 'px';
+  document.getElementById('popupOverlay').classList.add('on');
+}
+
+function closePopup() {
+  document.getElementById('popup').style.display = 'none';
+  document.getElementById('popupOverlay').classList.remove('on');
+}
+
+// ── OSHI EMOJI MODAL ──────────────────────────────────────
+var ALL_EMOJIS = [
+  '🧑','👦','👧','🧒','👱','🙋','🙆','💁','🧑‍🦱','🧑‍🦰','👨‍🦰','🕺','🧑‍🎤','🥷','🤵',
+  '🐱','🐶','🐰','🐻','🐼','🐨','🐯','🦊','🐸','🦁','🐮','🐷','🐹','🦝','🐺',
+  '🍙','🧋','🍣','🍩','🧁','🍜','🍱','🍰','🍪','🍔','🍕','🌮','🍦','🍫','🍭'
+];
+var oshiSeatTarget = -1;
+var oshiSelectedEmoji = '';
+var oshiCurrentPool = [];
+
+function getRandomPool() {
+  var shuffled = ALL_EMOJIS.slice().sort(function(){ return Math.random()-0.5; });
+  return shuffled.slice(0, 15);
+}
+
+function openOshiEmojiModal(idx) {
+  oshiSeatTarget = idx;
+  oshiSelectedEmoji = oshiEmojis[idx] || '';
+  oshiCurrentPool = getRandomPool();
+  if (oshiSelectedEmoji && oshiCurrentPool.indexOf(oshiSelectedEmoji) < 0) {
+    oshiCurrentPool[0] = oshiSelectedEmoji;
+  }
+  var tx = TXT[LANG];
+  document.getElementById('oshiModalTitle').textContent = tx.oshiTitle;
+  document.getElementById('oshiIconLbl').textContent = tx.oshiLbl;
+  document.getElementById('oshiConfirmBtn').textContent = tx.oshiOk;
+  document.getElementById('oshiRandomBtn').textContent = tx.randomBtn;
+  buildOshiGrid();
+  document.getElementById('oshiModalBg').classList.add('on');
+}
+
+function buildOshiGrid() {
+  var grid = document.getElementById('oshiIconGrid');
+  grid.innerHTML = '';
+  for (var i = 0; i < oshiCurrentPool.length; i++) {
+    (function(e) {
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'me-btn' + (oshiSelectedEmoji === e ? ' on' : '');
+      btn.textContent = e;
+      btn.onclick = function() {
+        oshiSelectedEmoji = e;
+        var all = document.querySelectorAll('#oshiIconGrid .me-btn');
+        for (var j = 0; j < all.length; j++) all[j].classList.toggle('on', all[j].textContent === e);
+      };
+      grid.appendChild(btn);
+    })(oshiCurrentPool[i]);
+  }
+}
+
+function randomOshiEmoji() {
+  oshiCurrentPool = getRandomPool();
+  // keep selection if still in new pool, else clear
+  if (oshiCurrentPool.indexOf(oshiSelectedEmoji) < 0) oshiSelectedEmoji = '';
+  buildOshiGrid();
+}
+
+function confirmOshiEmoji() {
+  if (!oshiSelectedEmoji) { oshiSelectedEmoji = oshiCurrentPool[0]; }
+  state[oshiSeatTarget] = 'oshi';
+  oshiEmojis[oshiSeatTarget] = oshiSelectedEmoji;
+  buildGrid();
+  closeOshiModal();
+}
+
+function closeOshiModal() {
+  document.getElementById('oshiModalBg').classList.remove('on');
+  oshiSeatTarget = -1;
+}
+
+function onOshiBgClick(e) {
+  if (e.target === document.getElementById('oshiModalBg')) closeOshiModal();
+}
+
+// ── ME MODAL ──────────────────────────────────────────────
+var meCurrentPool = [];
+
+function buildMeIcons() {
+  var grid = document.getElementById('meIconGrid');
+  grid.innerHTML = '';
+  for (var i = 0; i < meCurrentPool.length; i++) {
+    (function(e) {
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'me-btn' + (myIcon === e ? ' on' : '');
+      btn.textContent = e;
+      btn.onclick = function() {
+        myIcon = e;
+        var all = document.querySelectorAll('#meIconGrid .me-btn');
+        for (var j = 0; j < all.length; j++) all[j].classList.toggle('on', all[j].textContent === e);
+      };
+      grid.appendChild(btn);
+    })(meCurrentPool[i]);
+  }
+}
+
+function randomMeEmoji() {
+  meCurrentPool = ALL_EMOJIS.slice().sort(function(){ return Math.random()-0.5; }).slice(0,15);
+  if (myIcon && meCurrentPool.indexOf(myIcon) < 0) myIcon = '';
+  buildMeIcons();
+}
+
+function openMeModal(idx) {
+  meSeatTarget = idx;
+  meCurrentPool = ALL_EMOJIS.slice().sort(function(){ return Math.random()-0.5; }).slice(0,15);
+  if (myIcon && meCurrentPool.indexOf(myIcon) < 0) meCurrentPool[0] = myIcon;
+  document.getElementById('meNameInput').value = myName;
+  // apply current language texts
+  var tx = TXT[LANG];
+  document.getElementById('meModalTitle').textContent = tx.meTitle;
+  document.getElementById('meIconLbl').textContent = tx.meLbl;
+  document.getElementById('meNameLbl').textContent = tx.meNmLbl;
+  document.getElementById('meNameInput').placeholder = tx.meNmPH;
+  document.getElementById('meConfirmBtn').textContent = tx.meOk;
+  document.getElementById('meRandomBtn').textContent = tx.randomBtn;
+  buildMeIcons();
+  document.getElementById('meModalBg').classList.add('on');
+}
+
+function closeMeModal() {
+  document.getElementById('meModalBg').classList.remove('on');
+  meSeatTarget = -1;
+}
+
+function onMeBgClick(e) {
+  if (e.target === document.getElementById('meModalBg')) closeMeModal();
+}
+
+function confirmMe() {
+  myName = document.getElementById('meNameInput').value.trim();
+  if (!myIcon) myIcon = '🧑';
+  document.getElementById('footerInput').value = myName;
+  // clear other me
+  var keys = Object.keys(state);
+  for (var i = 0; i < keys.length; i++) {
+    if (parseInt(keys[i]) !== meSeatTarget && state[keys[i]] === 'me') {
+      delete state[keys[i]];
+    }
+  }
+  state[meSeatTarget] = 'me';
+  updateFooter();
+  buildGrid();
+  closeMeModal();
+}
+
+// ── FOOTER ────────────────────────────────────────────────
+function updateFooter() {
+  var el = document.getElementById('pageFooterName');
+  if (el) el.textContent = myName ? myIcon + ' ' + myName : '';
+}
+
+function onFooterChange() {
+  myName = document.getElementById('footerInput').value;
+  updateFooter();
+  var vals = Object.values ? Object.values(state) : Object.keys(state).map(function(k){ return state[k]; });
+  if (vals.indexOf('me') >= 0) buildGrid();
+}
+
+// ── SAVE ──────────────────────────────────────────────────
+function saveAsImage() {
+  var btn = document.getElementById('saveBtn');
+  btn.textContent = t('saving');
+  btn.disabled = true;
+  // hide lang switcher from screenshot
+  var ls = document.querySelector('.lang-switcher-bar');
+  if (ls) ls.style.visibility = 'hidden';
+  html2canvas(document.getElementById('page'), {
+    scale: 2,
+    useCORS: true,
+    backgroundColor: '#e8f0e0',
+    logging: false
+  }).then(function(canvas) {
+    if (ls) ls.style.visibility = '';
+    var link = document.createElement('a');
+    var room = document.getElementById('roomInput').value || 'classroom';
+    link.download = 'ebidan-' + room + '.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    btn.textContent = t('save');
+    btn.disabled = false;
+  }).catch(function() {
+    if (ls) ls.style.visibility = '';
+    btn.textContent = t('save');
+    btn.disabled = false;
+    alert(t('errSave'));
+  });
+}
+
+function clearAll() {
+  state = {};
+  oshiEmojis = {};
+  teacherNo = 0;
+  document.getElementById('teacherSelect').value = '';
+  document.getElementById('teacherDisplay').style.display = 'none';
+  buildGrid();
+}
+
+// ── CLOCK ─────────────────────────────────────────────────
+function drawClock() {
+  var c = document.getElementById('clockCanvas');
+  if (!c) return;
+  var ctx = c.getContext('2d'), cx = 32, cy = 32, r = 28;
+  var now = new Date(), h = now.getHours() % 12, m = now.getMinutes();
+  ctx.clearRect(0, 0, 64, 64);
+  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fillStyle = '#f5f0e5'; ctx.fill();
+  ctx.strokeStyle = '#8b5e2a'; ctx.lineWidth = 2.5; ctx.stroke();
+  var nums = [12, 3, 6, 9];
+  for (var i = 0; i < 4; i++) {
+    var a = (i * Math.PI / 2) - Math.PI / 2;
+    ctx.fillStyle = '#5a3a1a'; ctx.font = 'bold 8px sans-serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(nums[i], cx + Math.cos(a) * 20, cy + Math.sin(a) * 20);
+  }
+  var ha = (((h + m / 60) / 12) * Math.PI * 2) - Math.PI / 2;
+  ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + Math.cos(ha) * 15, cy + Math.sin(ha) * 15);
+  ctx.strokeStyle = '#2a1a08'; ctx.lineWidth = 2.5; ctx.lineCap = 'round'; ctx.stroke();
+  var ma = ((m / 60) * Math.PI * 2) - Math.PI / 2;
+  ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + Math.cos(ma) * 22, cy + Math.sin(ma) * 22);
+  ctx.strokeStyle = '#2a1a08'; ctx.lineWidth = 1.8; ctx.stroke();
+  ctx.beginPath(); ctx.arc(cx, cy, 3, 0, Math.PI * 2); ctx.fillStyle = '#2a1a08'; ctx.fill();
+}
+setInterval(drawClock, 1000);
+
+// ── INIT ──────────────────────────────────────────────────
+buildTeacherSelect();
+buildGrid();
+drawClock();
+applyLang();
+</script>
+</body>
+</html>
